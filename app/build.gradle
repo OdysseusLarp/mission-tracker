@@ -1,0 +1,58 @@
+apply plugin: 'com.android.application'
+
+apply plugin: 'kotlin-android'
+
+apply plugin: 'kotlin-android-extensions'
+
+android {
+    compileSdkVersion 28
+    defaultConfig {
+        minSdkVersion 21
+        targetSdkVersion 28
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField "boolean", "MOCK_ENABLED", "false"
+    }
+    flavorDimensions "default"
+    productFlavors {
+        team {
+            applicationId "com.odysseuslarp.missiontracker"
+            buildConfigField "boolean", "COMMAND_APP", "false"
+            buildConfigField "boolean", "MOCK_ENABLED", "false"
+        }
+        command {
+            applicationId "com.odysseuslarp.missiontracker.command"
+            buildConfigField "boolean", "COMMAND_APP", "true"
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation"org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.0-M1'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.0-M1'
+    implementation 'androidx.appcompat:appcompat:1.0.2'
+    implementation 'androidx.core:core-ktx:1.0.2'
+    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
+    implementation 'androidx.lifecycle:lifecycle-extensions:2.0.0'
+    implementation 'com.google.firebase:firebase-core:17.0.0'
+    implementation 'com.google.firebase:firebase-firestore:20.1.0'
+    implementation 'com.mapbox.mapboxsdk:mapbox-android-sdk:8.0.1'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'androidx.test:runner:1.2.0'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+}
+
+apply plugin: 'com.google.gms.google-services'
