@@ -28,7 +28,9 @@ class MainViewModel : ViewModel() {
         it?.let(::getMissionBounds)
     }
     val target = Transformations.switchMap(currentMission) {
-        when (val target = it?.get("target")) {
+        if (it?.get("target_disabled") == true) {
+            nullLiveData()
+        } else when (val target = it?.get("target")) {
             is GeoPoint -> MutableLiveData<Point?>().apply { value = target.toPoint() }
             "dynamic" -> dynamicTargetLocation
             else -> nullLiveData()
