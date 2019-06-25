@@ -126,7 +126,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun buildStyle() = Style.Builder().fromUrl(MY_STYLE)
-        .withImage(TARGET_IMAGE, checkNotNull(getDrawable(R.drawable.target)))
+        .withImage(TARGET_IMAGE, checkNotNull(ContextCompat.getDrawable(this, R.drawable.target)))
         .withSource(targetSource)
         .withLayer(SymbolLayer(TARGET_LAYER_ID, TARGET_SOURCE_ID).apply {
             setProperties(
@@ -143,7 +143,7 @@ class MainActivity : AppCompatActivity() {
         })
         .apply {
             if (BuildConfig.COMMAND_APP) {
-                withImage(TEAM_IMAGE, checkNotNull(getDrawable(R.drawable.team)))
+                withImage(TEAM_IMAGE, checkNotNull(ContextCompat.getDrawable(this@MainActivity, R.drawable.team)))
                 withSource(teamSource)
                 withLayer(SymbolLayer(TEAM_LAYER_ID, TEAM_SOURCE_ID).apply {
                     setProperties(
@@ -154,7 +154,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             if (BuildConfig.MOCK_ENABLED) {
-                withImage(MOCK_IMAGE, checkNotNull(getDrawable(R.drawable.team)))
+                withImage(MOCK_IMAGE, checkNotNull(ContextCompat.getDrawable(this@MainActivity, R.drawable.team)))
                 mockSource?.let(::withSource)
                 withLayer(SymbolLayer(MOCK_LAYER_ID, MOCK_SOURCE_ID).apply {
                     setProperties(
