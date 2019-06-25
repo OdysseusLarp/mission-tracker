@@ -22,12 +22,16 @@ class RadiationArea(
         const val COLOR_PROPERTY = "color"
 
         fun fromDocumentSnapshot(documentSnapshot: DocumentSnapshot) = documentSnapshot.run {
-            getGeoPoint("center")?.let { center ->
-                getDouble("radius")?.let { radiusMeters ->
-                    getDouble("intensity")?.let { intensity ->
-                        RadiationArea(center, radiusMeters, intensity)
+            try {
+                getGeoPoint("center")?.let { center ->
+                    getDouble("radius")?.let { radiusMeters ->
+                        getDouble("intensity")?.let { intensity ->
+                            RadiationArea(center, radiusMeters, intensity)
+                        }
                     }
                 }
+            } catch (_: RuntimeException) {
+                null
             }
         }
     }

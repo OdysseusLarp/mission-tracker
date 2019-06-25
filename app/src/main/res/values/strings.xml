@@ -1,3 +1,4 @@
 <resources>
     <string name="radiation_warning">RADIATION WARNING</string>
+    <string name="inactive">INACTIVE</string>
 </resources>

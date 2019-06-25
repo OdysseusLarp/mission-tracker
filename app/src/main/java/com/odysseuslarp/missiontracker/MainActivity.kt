@@ -50,6 +50,7 @@ class MainActivity : AppCompatActivity() {
     private val mapView by lazy { findViewById<MapView>(R.id.mapView) }
     private val radiationWarning by lazy { findViewById<View>(R.id.rad_warning) }
     private val radiationWarningText by lazy { findViewById<View>(R.id.rad_warning_text) }
+    private val inactiveCover by lazy { findViewById<View>(R.id.inactive_cover) }
     private val offlineUpdater by lazy { if (!BuildConfig.COMMAND_APP) OfflineUpdater(this) else null }
 
     private val teamSource by lazy { GeoJsonSource(TEAM_SOURCE_ID) }
@@ -71,6 +72,9 @@ class MainActivity : AppCompatActivity() {
 
         radiationWarningText.startAnimation(AnimationUtils.loadAnimation(this, R.anim.rad_warning_blink))
 
+        vm.currentMission.observe(this, Observer {
+            inactiveCover.visibility = if (it != null) View.INVISIBLE else View.VISIBLE
+        })
         vm.target.observe(this, Observer {
             if (it != null) {
                 targetSource.setGeoJson(it)

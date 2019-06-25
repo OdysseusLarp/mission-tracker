@@ -1,40 +1,42 @@
 package com.odysseuslarp.missiontracker
 
 import androidx.lifecycle.*
-import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.*
 import com.mapbox.geojson.FeatureCollection
 import com.mapbox.geojson.Point
+
+private fun <T> nullLiveData() = MutableLiveData<T>().apply { value = null }
 
 class MainViewModel : ViewModel() {
     private val db = FirebaseFirestore.getInstance()
     private val state = DocumentLiveData(db.document("missiondata/state"))
     private val currentMissionReference = Transformations.map(state) {
-        it?.getDocumentReference("current_mission")
+        it?.get("current_mission") as? DocumentReference
     }
     val currentMission = Transformations.switchMap(currentMissionReference) {
-        it?.let(::DocumentLiveData)
+        it?.let(::DocumentLiveData) ?: nullLiveData<DocumentSnapshot>()
     }
     private val locations = DocumentLiveData(db.document("missiondata/locations"))
     private val dynamicTargetLocation = Transformations.map(locations) {
-        it?.getGeoPoint("target")?.toPoint()
+        (it?.get("target") as? GeoPoint)?.toPoint()
     }
     private val radiationCollection = Transformations.switchMap(currentMissionReference) {
-        it?.collection("radiation")?.let(::QueryLiveData)
+        it?.collection("radiation")?.let(::QueryLiveData) ?: nullLiveData<QuerySnapshot>()
     }
 
     val currentBounds = Transformations.map(currentMission) {
         it?.let(::getMissionBounds)
     }
     val target = Transformations.switchMap(currentMission) {
-        it?.run {
-            getGeoPoint("target")?.run {
-                MutableLiveData<Point>().apply { value = toPoint() }
-            } ?: dynamicTargetLocation
+        when (val target = it?.get("target")) {
+            is GeoPoint -> MutableLiveData<Point?>().apply { value = target.toPoint() }
+            "dynamic" -> dynamicTargetLocation
+            else -> nullLiveData()
         }
     }
     val team = if (BuildConfig.COMMAND_APP) {
         Transformations.map(locations) {
-            it?.getGeoPoint("team")
+            it?.get("team") as? GeoPoint
         }
     } else {
         null
