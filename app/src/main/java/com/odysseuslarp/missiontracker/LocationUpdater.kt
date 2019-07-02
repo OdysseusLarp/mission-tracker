@@ -29,7 +29,7 @@ object LocationUpdater {
     }
     private fun updateLocationIfNeeded() {
         if (hasNewLocation && currentUpdateJob == null) {
-
+            hasNewLocation = false
             location?.let {
                 val earliestNextUpdateTime = SystemClock.elapsedRealtime() + MIN_INTERVAL_MILLIS
                 currentUpdateJob = MainScope().launch {
