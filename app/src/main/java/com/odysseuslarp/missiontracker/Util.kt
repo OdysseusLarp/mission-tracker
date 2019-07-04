@@ -3,6 +3,8 @@ package com.odysseuslarp.missiontracker
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.GeoPoint
 import com.mapbox.geojson.Point
+import com.mapbox.geojson.Polygon
+import com.mapbox.mapboxsdk.geometry.LatLng
 import com.mapbox.mapboxsdk.geometry.LatLngBounds
 import com.mapbox.mapboxsdk.maps.Style
 import java.lang.RuntimeException
@@ -22,3 +24,20 @@ fun getMissionBounds(mission: DocumentSnapshot) = mission.run {
 }
 
 fun GeoPoint.toPoint() = Point.fromLngLat(longitude, latitude)
+
+private fun LatLng.toPoint() = Point.fromLngLat(longitude, latitude)
+
+fun LatLngBounds.toPolygon(): Polygon {
+    val sw = southWest.toPoint()
+    return Polygon.fromLngLats(
+        listOf(
+            listOf(
+                sw,
+                southEast.toPoint(),
+                northEast.toPoint(),
+                northWest.toPoint(),
+                sw
+            )
+        )
+    )
+}

@@ -44,6 +44,10 @@ private const val MOCK_SOURCE_ID = "mock_src"
 private const val MOCK_LAYER_ID = "mock_layer"
 private const val MOCK_IMAGE = "mock_img"
 
+private const val BOUNDS_SOURCE_ID = "bounds_src"
+private const val BOUNDS_LAYER_ID = "bounds_layer"
+private const val BOUNDS_COLOR = "rgba(160, 0, 255, 0.7)"
+
 class MainActivity : AppCompatActivity() {
 
     private val vm by lazy { ViewModelProviders.of(this)[MainViewModel::class.java] }
@@ -58,6 +62,8 @@ class MainActivity : AppCompatActivity() {
     private val radiationSource by lazy { GeoJsonSource(RADIATION_SOURCE_ID) }
 
     private val mockSource by lazy { if (BuildConfig.MOCK_ENABLED) GeoJsonSource(MOCK_SOURCE_ID) else null }
+
+    private val boundsSource by lazy { if (BuildConfig.ADMIN_MONITOR) GeoJsonSource(BOUNDS_SOURCE_ID) else null }
 
     private val locationComponentWrangler = if (!BuildConfig.COMMAND_APP) LocationComponentWrangler() else null
 
@@ -110,6 +116,16 @@ class MainActivity : AppCompatActivity() {
                 }
             })
         }
+
+        if (BuildConfig.ADMIN_MONITOR) {
+            vm.currentBounds.observe(this, Observer {
+                if (it != null) {
+                    boundsSource?.setGeoJson(it.toPolygon())
+                } else {
+                    boundsSource?.setGeoJson(FeatureCollection.fromFeatures(emptyList()))
+                }
+            })
+        }
     }
 
     private fun onMapReady(mapboxMap: MapboxMap) {
@@ -126,6 +142,16 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun buildStyle() = Style.Builder().fromUrl(MY_STYLE)
+        .apply {
+            if (BuildConfig.ADMIN_MONITOR) {
+                boundsSource?.let(::withSource)
+                withLayer(FillLayer(BOUNDS_LAYER_ID, BOUNDS_SOURCE_ID).apply {
+                    setProperties(
+                        PropertyFactory.fillColor(BOUNDS_COLOR)
+                    )
+                })
+            }
+        }
         .withImage(TARGET_IMAGE, checkNotNull(ContextCompat.getDrawable(this, R.drawable.target)))
         .withSource(targetSource)
         .withLayer(SymbolLayer(TARGET_LAYER_ID, TARGET_SOURCE_ID).apply {
@@ -171,16 +197,18 @@ class MainActivity : AppCompatActivity() {
             attemptEnable()
         }
 
-        vm.currentBounds.observe(this, Observer { bounds ->
-            mapboxMap.apply {
-                setLatLngBoundsForCameraTarget(bounds)
-                setMinZoomPreference(0.0)
-                bounds?.let(::getCameraForLatLngBounds)?.let {
-                    setMinZoomPreference(it.zoom)
-                    cameraPosition = it
+        if (!BuildConfig.ADMIN_MONITOR) {
+            vm.currentBounds.observe(this, Observer { bounds ->
+                mapboxMap.apply {
+                    setLatLngBoundsForCameraTarget(bounds)
+                    setMinZoomPreference(0.0)
+                    bounds?.let(::getCameraForLatLngBounds)?.let {
+                        setMinZoomPreference(it.zoom)
+                        cameraPosition = it
+                    }
                 }
-            }
-        })
+            })
+        }
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {

@@ -13,6 +13,7 @@ android {
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField "boolean", "MOCK_ENABLED", "false"
+        buildConfigField "boolean", "ADMIN_MONITOR", "false"
     }
     flavorDimensions "default"
     productFlavors {
@@ -24,6 +25,11 @@ android {
         command {
             applicationId "com.odysseuslarp.missiontracker.command"
             buildConfigField "boolean", "COMMAND_APP", "true"
+        }
+        adminmonitor {
+            applicationId "com.odysseuslarp.missiontracker.adminmonitor"
+            buildConfigField "boolean", "COMMAND_APP", "true"
+            buildConfigField "boolean", "ADMIN_MONITOR", "true"
         }
     }
     buildTypes {
