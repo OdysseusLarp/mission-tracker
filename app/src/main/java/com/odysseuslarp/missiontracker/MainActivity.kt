@@ -2,11 +2,14 @@ package com.odysseuslarp.missiontracker
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.view.animation.AnimationUtils
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
@@ -14,7 +17,6 @@ import com.google.firebase.firestore.GeoPoint
 import com.mapbox.geojson.FeatureCollection
 import com.mapbox.geojson.Point
 import com.mapbox.mapboxsdk.Mapbox
-import com.mapbox.mapboxsdk.camera.CameraUpdateFactory
 import com.mapbox.mapboxsdk.location.LocationComponent
 import com.mapbox.mapboxsdk.location.LocationComponentActivationOptions
 import com.mapbox.mapboxsdk.maps.MapView
@@ -78,9 +80,13 @@ class MainActivity : AppCompatActivity() {
 
         radiationWarningText.startAnimation(AnimationUtils.loadAnimation(this, R.anim.rad_warning_blink))
 
-        vm.currentMission.observe(this, Observer {
-            inactiveCover.visibility = if (it != null) View.INVISIBLE else View.VISIBLE
-        })
+        if (BuildConfig.ADMIN_MONITOR) {
+            inactiveCover.visibility = View.INVISIBLE
+        } else {
+            vm.currentMission.observe(this, Observer {
+                inactiveCover.visibility = if (it != null) View.INVISIBLE else View.VISIBLE
+            })
+        }
         vm.target.observe(this, Observer {
             if (it != null) {
                 targetSource.setGeoJson(it)
@@ -118,6 +124,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (BuildConfig.ADMIN_MONITOR) {
+            addAdminUI()
+
             vm.currentBounds.observe(this, Observer {
                 if (it != null) {
                     boundsSource?.setGeoJson(it.toPolygon())
@@ -281,5 +289,24 @@ class MainActivity : AppCompatActivity() {
             }
             return hasPermission
         }
+    }
+
+    private fun addAdminUI() {
+        val root = findViewById<ConstraintLayout>(R.id.root)
+        val context = root.context
+
+        val mission = TextView(context).also(root::addView).apply {
+            layoutParams = (layoutParams as ConstraintLayout.LayoutParams).apply {
+                topToTop = ConstraintLayout.LayoutParams.PARENT_ID
+                startToStart = ConstraintLayout.LayoutParams.PARENT_ID
+            }
+            textSize = 24f
+            setTextColor(Color.BLACK)
+            setBackgroundColor(Color.LTGRAY)
+        }
+
+        vm.currentMission.observe(this, Observer {
+            mission.text = it?.reference?.path ?: getString(R.string.inactive)
+        })
     }
 }
