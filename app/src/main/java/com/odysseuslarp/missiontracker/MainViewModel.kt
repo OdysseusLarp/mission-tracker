@@ -87,7 +87,7 @@ class MainViewModel : ViewModel() {
                 value = FirebaseIdLiveData.value?.let { myId ->
                     sortedTeamMembers.value?.indexOfFirst { it.id == myId }
                 }?.let { index ->
-                    MainActivity.TEAM_MEMBER_COLORS.let { it[index % it.size] }
+                    MainActivity.TEAM_MEMBER_COLORS.let { it.getOrNull(index % it.size) }
                 } ?: MainActivity.TEAM_LEADER_COLOR
             }
         }
