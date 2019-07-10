@@ -9,6 +9,8 @@ import com.mapbox.android.core.location.LocationEngineCallback
 import com.mapbox.android.core.location.LocationEngineRequest
 import com.mapbox.android.core.location.LocationEngineResult
 
+val lastLocation by lazy { if (BuildConfig.COMMAND_APP) null else LastLocationLiveData() }
+
 class LastLocationLiveData : LiveData<GeoPoint>(), LocationEngineCallback<LocationEngineResult> {
     var locationEngine: LocationEngine? = null
         set(value) {

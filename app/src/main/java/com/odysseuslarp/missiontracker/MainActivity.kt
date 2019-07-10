@@ -17,6 +17,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import com.google.android.gms.security.ProviderInstaller
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.GeoPoint
 import com.mapbox.geojson.FeatureCollection
@@ -86,14 +87,11 @@ class MainActivity : AppCompatActivity() {
 
     private val locationComponentWrangler = if (!BuildConfig.COMMAND_APP) LocationComponentWrangler() else null
 
-    private val locationObserver by lazy {
-        Observer<GeoPoint> {
-            LocationUpdater.location = it
-        }
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        ProviderInstaller.installIfNeeded(this)
+
         if (!BuildConfig.COMMAND_APP) {
             startService(Intent(this, LocationUpdaterService::class.java))
         }
@@ -149,11 +147,10 @@ class MainActivity : AppCompatActivity() {
                     LocationUpdater.setFirebaseId(it)
                 })
             }
-            vm.lastLocation?.observeForever(locationObserver)
         }
 
         if (BuildConfig.MOCK_ENABLED) {
-            vm.lastLocation?.observe(this, Observer {
+            lastLocation?.observe(this, Observer {
                 it?.apply {
                     mockSource?.setGeoJson(Point.fromLngLat(longitude, latitude))
                 }
@@ -179,7 +176,7 @@ class MainActivity : AppCompatActivity() {
         if (BuildConfig.MOCK_ENABLED) {
             mapboxMap.addOnMapClickListener {
                 val geoPoint = GeoPoint(it.latitude, it.longitude)
-                vm.lastLocation?.setMockLocation(geoPoint)
+                lastLocation?.setMockLocation(geoPoint)
                 true
             }
         }
@@ -296,7 +293,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        vm.lastLocation?.removeObserver(locationObserver)
         super.onDestroy()
         mapView.onDestroy()
 
@@ -343,7 +339,7 @@ class MainActivity : AppCompatActivity() {
             val hasPermission =  ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
             if (hasPermission) {
                 locationComponent.isLocationComponentEnabled = true
-                vm.lastLocation?.locationEngine = locationComponent.locationEngine
+                lastLocation?.locationEngine = locationComponent.locationEngine
             }
             return hasPermission
         }

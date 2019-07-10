@@ -55,7 +55,6 @@ class MainViewModel : ViewModel() {
     val radiationFeatures = Transformations.map(radiationAreas) {
         FeatureCollection.fromFeatures(it?.map(RadiationArea::toFeature) ?: emptyList())
     }
-    val lastLocation = if (!BuildConfig.COMMAND_APP) LastLocationLiveData() else null
     val radiationWarning: LiveData<Double?> = object : MediatorLiveData<Double?>(), Observer<Any?> {
         private val locationSource = lastLocation ?: team
         init {
