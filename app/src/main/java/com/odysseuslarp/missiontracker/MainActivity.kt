@@ -1,6 +1,7 @@
 package com.odysseuslarp.missiontracker
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -85,8 +86,18 @@ class MainActivity : AppCompatActivity() {
 
     private val locationComponentWrangler = if (!BuildConfig.COMMAND_APP) LocationComponentWrangler() else null
 
+    private val locationObserver by lazy {
+        Observer<GeoPoint> {
+            LocationUpdater.location = it
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (!BuildConfig.COMMAND_APP) {
+            startService(Intent(this, LocationUpdaterService::class.java))
+        }
+
         if (BuildConfig.TEAM_MEMBER_APP) FirebaseAuth.getInstance().signInAnonymously()
 
         Mapbox.getInstance(this, "pk.eyJ1IjoicGVydHRpIiwiYSI6ImNpc3JpNTRyMjAwM3UydGs2Ymw3M3pqZTgifQ.90QQ7GIrcKCp3OfDuXtvYA")
@@ -138,9 +149,7 @@ class MainActivity : AppCompatActivity() {
                     LocationUpdater.setFirebaseId(it)
                 })
             }
-            vm.lastLocation?.observe(this, Observer {
-                LocationUpdater.location = GeoPoint(it.latitude, it.longitude)
-            })
+            vm.lastLocation?.observeForever(locationObserver)
         }
 
         if (BuildConfig.MOCK_ENABLED) {
@@ -163,6 +172,8 @@ class MainActivity : AppCompatActivity() {
             })
         }
     }
+
+
 
     private fun onMapReady(mapboxMap: MapboxMap) {
         if (BuildConfig.MOCK_ENABLED) {
@@ -285,10 +296,16 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        vm.lastLocation?.removeObserver(locationObserver)
         super.onDestroy()
         mapView.onDestroy()
 
-        if (isFinishing) offlineUpdater?.active = false
+        if (isFinishing) {
+            offlineUpdater?.active = false
+            if (!BuildConfig.COMMAND_APP) {
+                stopService(Intent(this, LocationUpdaterService::class.java))
+            }
+        }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
